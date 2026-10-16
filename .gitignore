@@ -1,0 +1,4 @@
+# Données personnelles : ne jamais publier
+input/
+# Sauvegardes exportées depuis l'application (contiennent les prénoms et l'historique)
+*.json

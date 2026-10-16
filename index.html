@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#1f6f5c">
+  <title>Covoiturage — Qui conduit ?</title>
+  <!-- Application installable sur téléphone (Android : « Ajouter à l'écran d'accueil ») -->
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <!-- Logo de l'onglet : une petite voiture dessinée en SVG -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M13 31 L19 17 Q21 12 26 12 H38 Q43 12 45 17 L51 31 Z' fill='%231f6f5c'/%3E%3Cpath d='M20 29 L24 18 H31 V29 Z M34 29 V18 H40 L44 29 Z' fill='%23e2f0eb'/%3E%3Crect x='3' y='28' width='58' height='19' rx='7' fill='%231f6f5c'/%3E%3Crect x='54' y='32' width='5' height='5' rx='1.5' fill='%23ffd36b'/%3E%3Ccircle cx='18' cy='47' r='8' fill='%231f2a2e'/%3E%3Ccircle cx='18' cy='47' r='3.5' fill='%23ffffff'/%3E%3Ccircle cx='46' cy='47' r='8' fill='%231f2a2e'/%3E%3Ccircle cx='46' cy='47' r='3.5' fill='%23ffffff'/%3E%3C/svg%3E">
+  <style>
+    :root {
+      --bg: #f4f1ea;
+      --card: #ffffff;
+      --ink: #1f2a2e;
+      --muted: #6b7478;
+      --line: #e3ddd1;
+      --accent: #1f6f5c;
+      --accent-soft: #e2f0eb;
+      --pos: #1f7a4d;
+      --neg: #b4432f;
+      --radius: 14px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.45;
+    }
+    header {
+      padding: 28px 20px 8px;
+      max-width: 960px;
+      margin: 0 auto;
+    }
+    header h1 { margin: 0; font-size: 1.9rem; letter-spacing: -0.02em; }
+    header p { margin: 4px 0 0; color: var(--muted); }
+    main {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 16px 20px 40px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 20px;
+    }
+    .card { min-width: 0; } /* une carte ne doit jamais dépasser la largeur de l'écran */
+    .wide { grid-column: 1 / -1; }
+    h2 { margin: 0 0 14px; font-size: 1.1rem; }
+    label.field { display: block; font-weight: 600; margin: 14px 0 6px; font-size: 0.92rem; }
+    input[type="text"], input[type="date"], select {
+      font: inherit;
+      padding: 8px 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      width: 100%;
+    }
+    #people { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    #suggestion {
+      margin-top: 16px;
+      padding: 14px 16px;
+      background: var(--accent-soft);
+      border-radius: 10px;
+    }
+    #suggestion p { margin: 0 0 4px; }
+    #suggestion .big { font-size: 1.2rem; }
+    .ranking { margin: 8px 0 0; padding-left: 20px; font-size: 0.9rem; }
+    .ranking li span:first-child { display: inline-block; min-width: 110px; }
+    button {
+      font: inherit;
+      padding: 9px 16px;
+      border-radius: 8px;
+      border: 1px solid var(--accent);
+      background: var(--accent);
+      color: #fff;
+      cursor: pointer;
+    }
+    button:hover { filter: brightness(1.08); }
+    button.secondary { background: #fff; color: var(--accent); }
+    button.danger { background: #fff; color: var(--neg); border-color: #e6c3bb; }
+    .actions { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
+    .error { color: var(--neg); font-size: 0.9rem; margin: 8px 0 0; min-height: 1em; }
+    .warning { color: #a0690e; font-size: 0.88rem; margin: 4px 0 0; min-height: 1em; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--line); }
+    th { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); font-weight: 600; }
+    .num { text-align: right; font-variant-numeric: tabular-nums; }
+    .pos { color: var(--pos); font-weight: 600; }
+    .neg { color: var(--neg); font-weight: 600; }
+    .zero { color: var(--muted); }
+    .muted { color: var(--muted); }
+    .small { font-size: 0.86rem; }
+    .rule { font-size: 0.9rem; color: var(--muted); margin: 12px 0 0; }
+    .week-nav { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+    .week-nav h2 { margin: 0; flex: 1; text-align: center; }
+    .week-nav button { padding: 6px 14px; }
+    .table-scroll { overflow-x: auto; }
+    .planning th, .planning td { padding: 6px; }
+    .planning .center { text-align: center; }
+    .planning select { width: auto; min-width: 90px; padding: 5px 6px; font-size: 0.9rem; }
+    .planning .drivers-row td { border-bottom: none; padding-top: 12px; vertical-align: top; }
+    button.cell {
+      width: 62px; height: 36px; padding: 0; border-radius: 8px;
+      border: 1px solid var(--line); font-size: 0.85rem; font-weight: 700; user-select: none;
+    }
+    button.cell:hover { filter: brightness(0.96); }
+    .cell.away { background: #faf8f4; color: #c3bcae; }
+    .cell.ar { background: var(--accent-soft); color: var(--accent); border-color: #bcdcd1; }
+    .cell.half { background: #fbf1dc; color: #9a6510; border-color: #ecd7a8; }
+    .cell.driver { background: var(--accent); border-color: var(--accent); font-size: 1.15rem; }
+    .legend { display: flex; flex-wrap: wrap; gap: 14px; margin: 10px 0 0; font-size: 0.85rem; color: var(--muted); }
+    .legend .cell { width: auto; height: auto; padding: 2px 8px; font-size: 0.8rem; display: inline-block; border: 1px solid var(--line); border-radius: 6px; }
+    .status-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 6px; }
+    .status-row select { width: 170px; }
+    textarea {
+      font: inherit; font-size: 0.92rem; width: 100%;
+      padding: 10px; border: 1px solid var(--line); border-radius: 8px; background: #faf8f4; resize: vertical;
+    }
+    /* Graphique "Qui a fait quoi ?" */
+    .chart { --series-1: #2a78d6; --series-2: #eb6834; margin: 14px 0 18px; }
+    .chart-legend { display: flex; flex-wrap: wrap; gap: 16px; font-size: 0.88rem; color: var(--ink); }
+    .swatch { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+    .swatch.driver { background: #2a78d6; }
+    .swatch.pass { background: #eb6834; }
+    .bar-row { display: grid; grid-template-columns: 90px 1fr; align-items: center; gap: 10px; margin: 10px 0; }
+    .bar-name { font-weight: 600; font-size: 0.92rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .bar-track { display: flex; align-items: center; gap: 2px; height: 22px; }
+    .seg {
+      height: 22px; min-width: 2px; display: flex; align-items: center; justify-content: center;
+      font-size: 0.8rem; font-weight: 600; overflow: hidden; white-space: nowrap; cursor: default;
+    }
+    .seg.driver { background: var(--series-1); color: #fff; }
+    .seg.pass { background: var(--series-2); color: #1f2a2e; }
+    .seg:last-of-type { border-radius: 0 4px 4px 0; }
+    .seg:hover { filter: brightness(1.08); }
+    .bar-total { font-size: 0.88rem; font-weight: 600; color: var(--ink); padding-left: 6px; white-space: nowrap; }
+    .tooltip {
+      position: fixed; pointer-events: none; z-index: 10;
+      background: var(--ink); color: #fff; font-size: 0.84rem;
+      padding: 6px 10px; border-radius: 6px; white-space: nowrap;
+    }
+    .stats-table td, .stats-table th { padding: 6px; }
+    .name-score { display: none; font-size: 0.75rem; font-weight: 400; white-space: nowrap; }
+    @media (max-width: 760px) {
+      main { grid-template-columns: 1fr; }
+    }
+    /* Téléphone */
+    @media (max-width: 600px) {
+      header { padding: 16px 14px 4px; }
+      header h1 { font-size: 1.5rem; }
+      header p { font-size: 0.9rem; }
+      main { padding: 10px 10px 30px; gap: 12px; }
+      .card { padding: 14px 12px; border-radius: 12px; }
+      button, select, input[type="text"], input[type="date"] { min-height: 44px; }
+      .actions button { flex: 1 1 auto; }
+      .week-nav h2 { font-size: 1rem; }
+      .week-nav button { min-width: 44px; }
+      .planning th, .planning td { padding: 4px 2px; }
+      .planning th { font-size: 0.68rem; letter-spacing: 0; }
+      .planning td:first-child { font-size: 0.85rem; max-width: 74px; overflow: hidden; text-overflow: ellipsis; }
+      .planning .score-col { display: none; }
+      .name-score { display: block; }
+      button.cell { width: 100%; min-width: 44px; height: 40px; font-size: 0.72rem; }
+      .planning select { width: 100%; min-width: 0; padding: 4px 2px; font-size: 0.75rem; }
+      .planning .drivers-row td:first-child strong { font-size: 0.75rem; }
+      .bar-row { grid-template-columns: 70px 1fr; gap: 6px; }
+      .stats-table th { font-size: 0.66rem; letter-spacing: 0; }
+      .stats-table td, .stats-table th { padding: 6px 3px; }
+      .status-row select { width: 60%; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🚗 Covoiturage</h1>
+    <p>Qui conduit aujourd'hui ? Du lundi au vendredi, de façon juste pour tout le monde.</p>
+  </header>
+
+  <main>
+    <section class="card wide">
+      <div class="week-nav">
+        <button class="secondary" id="prev-week" title="Semaine précédente">◀</button>
+        <h2 id="week-label">Planning de la semaine</h2>
+        <button class="secondary" id="next-week" title="Semaine suivante">▶</button>
+      </div>
+      <p class="muted small" style="margin:0 0 12px">
+        Clique sur une case pour changer : — (absent) → A/R → Aller → Retour → —.
+        Le conducteur est choisi parmi les personnes en aller-retour, jour après jour
+        (★ = conducteur proposé). Tu peux en choisir un autre dans la liste.
+      </p>
+      <div class="table-scroll"><table id="planning" class="planning"></table></div>
+      <div class="legend">
+        <span><span class="cell ar">A/R</span> aller-retour</span>
+        <span><span class="cell half">Aller</span> <span class="cell half">Retour</span> un seul trajet</span>
+        <span><span class="cell driver">🚗</span> conducteur</span>
+        <span><span class="cell away">—</span> absent</span>
+      </div>
+      <p class="muted small" id="week-status"></p>
+      <div class="actions">
+        <button id="save-plan">Enregistrer le planning de la semaine</button>
+      </div>
+
+      <label class="field" for="plan-text">Texte à envoyer au groupe</label>
+      <textarea id="plan-text" rows="6" readonly></textarea>
+      <div class="actions">
+        <button class="secondary" id="copy-plan">Copier le texte</button>
+        <button class="secondary" id="share-plan" hidden>Partager…</button>
+      </div>
+    </section>
+
+    <section class="card wide">
+      <h2>Qui a fait quoi ?</h2>
+      <p class="muted small" style="margin:0 0 12px">
+        Compté en jours : un aller-retour = 1, un aller ou un retour seul = ½.
+        Covoiturage = conducteur ou passager, à 2 personnes au moins dans la voiture.
+      </p>
+      <div class="chart-legend">
+        <span><i class="swatch driver"></i>Conducteur</span>
+        <span><i class="swatch pass"></i>Passager</span>
+        <span class="muted">Longueur totale = nombre de covoiturages</span>
+      </div>
+      <div id="chart" class="chart"></div>
+      <table class="stats-table">
+        <thead>
+          <tr><th>Nom</th><th class="num">Conducteur</th><th class="num">Passager</th><th class="num">Covoiturage</th><th class="num">Seul(e) au volant</th></tr>
+        </thead>
+        <tbody id="stats"></tbody>
+      </table>
+      <div id="tooltip" class="tooltip" hidden></div>
+    </section>
+
+    <section class="card" id="form-card">
+      <p class="muted small" style="margin:0 0 6px">Journée imprévue ou correction (choisis une date déjà enregistrée pour la modifier) :</p>
+      <h2 id="form-title">Nouvelle journée</h2>
+
+      <label class="field" for="date">Date</label>
+      <input type="date" id="date">
+      <p class="warning" id="date-warning"></p>
+
+      <label class="field">Qui vient ?</label>
+      <div id="presence"></div>
+
+      <div id="suggestion"></div>
+
+      <label class="field" for="driver">Conducteur du jour</label>
+      <select id="driver"></select>
+
+      <p class="error" id="form-error"></p>
+      <div class="actions">
+        <button id="save-day">Enregistrer la journée</button>
+        <button class="secondary" id="cancel-edit" hidden>Annuler la modification</button>
+        <button class="danger" id="delete-day" hidden>Supprimer cette journée</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Les personnes</h2>
+      <div id="people"></div>
+      <p class="rule">Clique sur un nom pour le modifier.</p>
+    </section>
+
+    <section class="card">
+      <h2>Sauvegarde</h2>
+      <p class="muted small" style="margin:0">
+        Les données sont enregistrées automatiquement dans ce navigateur.
+        Exporte régulièrement une copie pour ne rien perdre.
+      </p>
+      <div class="actions">
+        <button class="secondary" id="export">Exporter (fichier)</button>
+        <button class="secondary" id="import">Importer un fichier</button>
+        <input type="file" id="import-file" accept=".json,application/json" hidden>
+      </div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
