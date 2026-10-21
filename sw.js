@@ -2,7 +2,7 @@
 // Stratégie "réseau d'abord" : on prend la dernière version en ligne si possible,
 // sinon la copie gardée en mémoire. Changer VERSION force le renouvellement de la copie.
 
-const VERSION = 'covoiturage-v1';
+const VERSION = 'covoiturage-v2';
 const FILES = [
   './',
   './index.html',

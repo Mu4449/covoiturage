@@ -4,12 +4,13 @@
 // Chaque jour, chaque personne fait : l'aller-retour, l'aller seulement,
 // le retour seulement, ou elle est absente.
 //
-// Règle des 12 points :
-//   Chaque trajet (l'aller, puis le retour) vaut 12 points, partagés entre
-//   les n personnes de CE trajet : chacune "doit" une part de 12 / n.
-//   - le conducteur gagne 12 - part (il a fourni la voiture)
-//   - chaque passager perd sa part
-//   - seul dans la voiture : aucun point
+// Deux systèmes de points au choix (réglage state.system), calculés trajet par trajet
+// (l'aller, puis le retour), entre les n personnes de CE trajet :
+//   '12' — partage à 12 points : chacune "doit" une part de 12 / n ;
+//          le conducteur gagne 12 - part, chaque passager perd sa part.
+//   '1'  — 1 point par passager : chaque passager perd ½ point par trajet
+//          (1 point pour un aller-retour), le conducteur gagne ½ point par passager.
+//   Seul dans la voiture : aucun point.
 //   Le conducteur fait toujours l'aller ET le retour (c'est sa voiture) :
 //   parmi les personnes en aller-retour, celle qui a le score le plus bas conduit.
 //   Égalité : celle qui a conduit il y a le plus longtemps, puis ordre alphabétique.
@@ -17,6 +18,10 @@
 
 const STORAGE_KEY = 'covoiturage-v1';
 const POINTS_TRAJET = 12;
+const SYSTEMES = {
+  '12': 'Partage à 12 points',
+  '1': '1 point par passager',
+};
 const NOMS_JOURS = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
 
 // Statuts possibles d'une personne pour une journée (absent = pas de statut).
@@ -38,6 +43,7 @@ function defaultState() {
       { id: 'p4', name: 'Personne 4' },
     ],
     days: [],
+    system: '12',
   };
 }
 
@@ -56,6 +62,7 @@ function normalizeState(s) {
     for (const id of d.present) status[id] = 'ar';
     return { id: d.id, date: d.date, status, driver: d.driver };
   });
+  if (!SYSTEMES[s.system]) s.system = '12';
   return s;
 }
 
@@ -137,6 +144,7 @@ function hasAnyone(status) {
 // Points d'un trajet : { conducteur, passager } selon le nombre de personnes.
 function legPoints(n) {
   if (n < 2) return { driver: 0, passenger: 0 };
+  if (state.system === '1') return { driver: (n - 1) / 2, passenger: -0.5 };
   const part = POINTS_TRAJET / n;
   return { driver: POINTS_TRAJET - part, passenger: -part };
 }
@@ -157,8 +165,8 @@ function pointsOfDay(day) {
 function computeStats(days) {
   const stats = {};
   for (const p of state.people) {
-    // driven / passenger : trajets en covoiturage (au moins 2 dans la voiture) ; alone : trajets seul(e) au volant
-    stats[p.id] = { score: 0, driven: 0, passenger: 0, alone: 0, lastDrive: '' };
+    // driven / passenger : trajets en covoiturage (au moins 2 dans la voiture)
+    stats[p.id] = { score: 0, driven: 0, passenger: 0, lastDrive: '' };
   }
   const sorted = [...days].sort((a, b) => a.date.localeCompare(b.date));
   for (const day of sorted) {
@@ -168,9 +176,8 @@ function computeStats(days) {
     }
     for (const leg of Object.values(legsOf(day.status))) {
       for (const id of leg) {
-        if (!stats[id]) continue;
-        if (leg.length < 2) stats[id].alone++;
-        else if (id === day.driver) stats[id].driven++;
+        if (!stats[id] || leg.length < 2) continue;
+        if (id === day.driver) stats[id].driven++;
         else stats[id].passenger++;
       }
     }
@@ -213,8 +220,9 @@ function esc(text) {
 }
 
 function formatPoints(n) {
-  if (n > 0) return `+${n}`;
-  if (n < 0) return `−${-n}`;
+  const text = String(Math.abs(Math.round(n * 100) / 100)).replace('.', ',');
+  if (n > 0) return `+${text}`;
+  if (n < 0) return `−${text}`;
   return '0';
 }
 
@@ -367,12 +375,14 @@ function renderStats() {
 
   $('stats').innerHTML = state.people.map(p => {
     const s = stats[p.id];
+    const total = s.driven + s.passenger;
+    const percent = total ? `${Math.round((s.driven / total) * 100)} %` : '—';
     return `<tr>
       <td>${esc(p.name)}</td>
       <td class="num">${formatDays(s.driven)}</td>
       <td class="num">${formatDays(s.passenger)}</td>
-      <td class="num"><strong>${formatDays(s.driven + s.passenger)}</strong></td>
-      <td class="num muted">${formatDays(s.alone)}</td>
+      <td class="num"><strong>${formatDays(total)}</strong></td>
+      <td class="num">${percent}</td>
     </tr>`;
   }).join('');
 
@@ -478,9 +488,10 @@ function shortDate(str) {
 function planText(result) {
   const lines = [`Covoiturage — semaine du ${parseDate(plan.monday).toLocaleDateString('fr-FR')}`];
   for (const r of result) {
-    const label = capitalize(formatDate(r.date));
+    const label = capitalize(NOMS_JOURS[parseDate(r.date).getDay()]);
     if (r.driver) {
-      lines.push(`${label} : ${personName(r.driver)} conduit — ${passengersText(r.status, r.driver)}`);
+      // *texte* s'affiche en gras dans WhatsApp, Signal, Telegram…
+      lines.push(`${label} : *${personName(r.driver)}* conduit — ${passengersText(r.status, r.driver)}`);
     } else if (hasAnyone(r.status)) {
       lines.push(`${label} : pas de conducteur possible (personne ne fait l'aller-retour)`);
     } else {
@@ -597,6 +608,10 @@ function changeWeek(offset) {
 }
 
 function renderAll() {
+  $('system').value = state.system;
+  $('system-rule').textContent = state.system === '1'
+    ? 'Par aller-retour : chaque passager −1, le conducteur +1 par passager (moitié pour un aller ou un retour seul).'
+    : 'Chaque trajet vaut 12 points partagés : à 2 → conducteur +6 / passager −6, à 3 → +8 / −4, à 4 → +9 / −3.';
   renderPlanning();
   renderPeople();
   renderForm(editingId ? state.days.find(d => d.id === editingId) : null);
@@ -689,6 +704,13 @@ $('prev-week').addEventListener('click', () => changeWeek(-1));
 $('next-week').addEventListener('click', () => changeWeek(1));
 $('save-plan').addEventListener('click', savePlan);
 $('copy-plan').addEventListener('click', copyPlanText);
+$('system').innerHTML = Object.entries(SYSTEMES).map(([k, label]) => `<option value="${k}">${label}</option>`).join('');
+$('system').addEventListener('change', () => {
+  state.system = $('system').value;
+  save();
+  refreshPlan();
+  renderAll();
+});
 if (navigator.share) {
   $('share-plan').hidden = false;
   $('share-plan').addEventListener('click', sharePlanText);

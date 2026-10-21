@@ -20,6 +20,7 @@ Dans le cadre **« Les personnes »**, remplace « Personne 1 », « Personne 2 
 4. La colonne **« Score avant → après »** montre l'évolution de chacun sur la semaine.
 5. Clique sur **« Enregistrer le planning de la semaine »**.
 6. Clique sur **« Copier le texte »** et colle-le dans votre groupe (WhatsApp, SMS, mail…).
+   Le nom du conducteur est entouré d'étoiles (`*Yves*`) : WhatsApp l'affiche **en gras**.
 
 Un imprévu en cours de semaine ? Reviens sur le planning, change la case, et enregistre à nouveau
 (ou corrige la journée dans le cadre « Nouvelle journée », voir ci-dessous).
@@ -38,10 +39,17 @@ Une erreur ? Dans ce même cadre, **choisis la date de la journée déjà enregi
 Pour chaque personne, une barre montre le nombre de jours comme **conducteur** (bleu) et comme **passager** (orange).
 La longueur totale de la barre = le nombre de jours de **covoiturage** (au moins 2 personnes dans la voiture).
 Un aller-retour compte pour 1 jour, un aller ou un retour seul pour ½.
-Passe la souris sur une barre pour voir le détail. Le tableau en dessous donne les mêmes chiffres,
-plus les trajets faits **seul(e) au volant** (qui ne comptent pas comme du covoiturage).
+Passe la souris (ou touche, sur téléphone) une barre pour voir le détail. Le tableau en dessous donne les mêmes chiffres,
+plus le **% conducteur** : la part des covoiturages où la personne conduisait.
 
-## La règle des 12 points
+## Les deux systèmes de points
+En haut du planning, la liste **« Système de points »** permet de choisir. Le choix est mémorisé
+(et inclus dans les sauvegardes exportées). Tout est recalculé à partir de l'historique, on peut changer à tout moment.
+
+**1 point par passager** : pour un aller-retour, chaque passager **−1** et le conducteur **+1 par passager**
+(moitié pour un aller ou un retour seul : passager −½, conducteur +½ par passager).
+
+**Partage à 12 points** (expliqué ci-dessous) :
 **L'aller et le retour comptent séparément** : chacun vaut **12 points**, partagés entre les personnes de ce trajet.
 Quelqu'un qui ne fait que l'aller ne « paie » donc que l'aller (la moitié d'un aller-retour).
 
