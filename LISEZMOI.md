@@ -20,7 +20,7 @@ Dans le cadre **« Les personnes »**, remplace « Personne 1 », « Personne 2 
 4. La colonne **« Score avant → après »** montre l'évolution de chacun sur la semaine.
 5. Clique sur **« Enregistrer le planning de la semaine »**.
 6. Clique sur **« Copier le texte »** et colle-le dans votre groupe (WhatsApp, SMS, mail…).
-   Le nom du conducteur est entouré d'étoiles (`*Yves*`) : WhatsApp l'affiche **en gras**.
+   Le nom du conducteur est entouré d'étoiles (`*Anne*`) : WhatsApp l'affiche **en gras**.
 
 Un imprévu en cours de semaine ? Reviens sur le planning, change la case, et enregistre à nouveau
 (ou corrige la journée dans le cadre « Nouvelle journée », voir ci-dessous).
