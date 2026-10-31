@@ -2,7 +2,7 @@
 // Stratégie "réseau d'abord" : on prend la dernière version en ligne si possible,
 // sinon la copie gardée en mémoire. Changer VERSION force le renouvellement de la copie.
 
-const VERSION = 'covoiturage-v3';
+const VERSION = 'covoiturage-v4';
 const FILES = [
   './',
   './index.html',
@@ -30,7 +30,9 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
   event.respondWith(
-    fetch(event.request)
+    // no-cache : on redemande toujours au site s'il y a plus récent (sinon le téléphone peut
+    // mélanger une page neuve et un ancien app.js gardé quelques minutes).
+    fetch(event.request, { cache: 'no-cache' })
       .then(response => {
         if (response.ok && new URL(event.request.url).origin === self.location.origin) {
           const copy = response.clone();
