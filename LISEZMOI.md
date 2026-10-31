@@ -134,8 +134,11 @@ Quand le programme a été modifié sur le PC, il faut l'envoyer sur GitHub pour
    et attend ton accord avant d'envoyer.
 
 **À la main (si tu veux le faire toi-même)**
-1. Dans `sw.js`, augmente le numéro de `VERSION` (ex. `covoiturage-v3` → `covoiturage-v4`) :
-   c'est ce qui dit au téléphone « il y a du nouveau ».
+1. Dans `version.js`, change le numéro `APP_VERSION` : c'est ce qui dit au téléphone « il y a du nouveau ».
+   Il a 3 parties **A.B.C** (ex. `1.3.0`) :
+   - **petite correction** → on augmente C : `1.3.0` → `1.3.1`
+   - **nouvelle fonction** → on augmente B et on remet C à 0 : `1.3.1` → `1.4.0`
+   - **grand changement** (l'application fonctionne autrement) → on augmente A et on remet le reste à 0 : `1.4.0` → `2.0.0`
 2. Ouvre un terminal (PowerShell) dans le dossier `covoiturage`.
 3. Tape ces 3 commandes, une par une :
    ```
@@ -147,7 +150,8 @@ Quand le programme a été modifié sur le PC, il faut l'envoyer sur GitHub pour
    - `git commit` : les met dans un « paquet » avec un petit message
    - `git push` : envoie le paquet sur GitHub
 4. Attends 1 à 2 minutes : le site `https://<ton-compte>.github.io/covoiturage/` est à jour.
-   Sur le téléphone, ferme et rouvre l'application.
+   Sur le téléphone, ferme et rouvre l'application (parfois deux fois).
+   Le numéro **« Version … »** affiché sous le titre permet de vérifier que la mise à jour est arrivée.
 
 ⚠️ **Avant d'envoyer**, vérifie qu'aucun vrai prénom n'est écrit dans les fichiers
 (dans ce mode d'emploi, utilise des prénoms inventés comme « Anne »).
@@ -156,4 +160,5 @@ Le dossier `input/` et les fichiers `.json` (tes sauvegardes) ne partent jamais 
 ## Les fichiers
 - `index.html` : la page (ce que tu vois)
 - `app.js` : les calculs (points, choix du conducteur, sauvegarde)
+- `version.js` : le numéro de version (à changer à chaque mise à jour)
 - `manifest.webmanifest`, `sw.js`, `icons/` : ce qui rend l'application installable sur téléphone

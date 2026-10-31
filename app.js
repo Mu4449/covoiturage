@@ -803,6 +803,7 @@ function confirmReset() {
 
 // ---------- Démarrage ----------
 
+$('app-version').textContent = `Version ${APP_VERSION}`;
 $('prev-week').addEventListener('click', () => changeWeek(-1));
 $('next-week').addEventListener('click', () => changeWeek(1));
 $('save-plan').addEventListener('click', savePlan);

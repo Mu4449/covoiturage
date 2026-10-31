@@ -1,11 +1,13 @@
 // Service worker : permet d'ouvrir l'application sans Internet.
 // Stratégie "réseau d'abord" : on prend la dernière version en ligne si possible,
-// sinon la copie gardée en mémoire. Changer VERSION force le renouvellement de la copie.
+// sinon la copie gardée en mémoire. Changer APP_VERSION (dans version.js) force le renouvellement de la copie.
 
-const VERSION = 'covoiturage-v4';
+importScripts('version.js');
+const VERSION = `covoiturage-v${APP_VERSION}`;
 const FILES = [
   './',
   './index.html',
+  './version.js',
   './app.js',
   './manifest.webmanifest',
   './icons/icon.svg',
