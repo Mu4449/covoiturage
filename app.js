@@ -44,6 +44,8 @@ function defaultState() {
     ],
     days: [],
     system: '12',
+    // Points de départ de chacun, pour chaque système (fixés lors d'une remise à zéro).
+    start: { '12': {}, '1': {} },
   };
 }
 
@@ -63,6 +65,13 @@ function normalizeState(s) {
     return { id: d.id, date: d.date, status, driver: d.driver };
   });
   if (!SYSTEMES[s.system]) s.system = '12';
+  const start = s.start && typeof s.start === 'object' ? s.start : {};
+  s.start = {};
+  for (const k of Object.keys(SYSTEMES)) {
+    const values = start[k] && typeof start[k] === 'object' ? start[k] : {};
+    s.start[k] = {};
+    for (const [id, n] of Object.entries(values)) if (Number.isFinite(n)) s.start[k][id] = n;
+  }
   return s;
 }
 
@@ -161,12 +170,13 @@ function pointsOfDay(day) {
   return result;
 }
 
-// Recalcule tout depuis l'historique (les scores ne sont jamais stockés).
+// Recalcule tout depuis l'historique et les points de départ (les scores ne sont jamais stockés).
 function computeStats(days) {
   const stats = {};
+  const start = state.start[state.system];
   for (const p of state.people) {
     // driven / passenger : trajets en covoiturage (au moins 2 dans la voiture)
-    stats[p.id] = { score: 0, driven: 0, passenger: 0, lastDrive: '' };
+    stats[p.id] = { score: start[p.id] || 0, driven: 0, passenger: 0, lastDrive: '' };
   }
   const sorted = [...days].sort((a, b) => a.date.localeCompare(b.date));
   for (const day of sorted) {
@@ -184,6 +194,27 @@ function computeStats(days) {
     if (stats[day.driver]) stats[day.driver].lastDrive = day.date;
   }
   return stats;
+}
+
+// Scores actuels de chacun dans un système donné (même si ce n'est pas celui choisi).
+function scoresFor(system) {
+  const current = state.system;
+  state.system = system;
+  const stats = computeStats(state.days);
+  state.system = current;
+  return stats;
+}
+
+// Remplissage de la voiture : nombre de trajets à 2, 3, 4… personnes (seul(e) ne compte pas).
+function computeFill(days) {
+  const fill = {};
+  for (let n = 2; n <= state.people.length; n++) fill[n] = 0;
+  for (const day of days) {
+    for (const leg of Object.values(legsOf(day.status))) {
+      if (leg.length >= 2) fill[leg.length] = (fill[leg.length] || 0) + 1;
+    }
+  }
+  return fill;
 }
 
 // Classe les candidats : le premier est celui qui doit conduire.
@@ -386,8 +417,28 @@ function renderStats() {
     </tr>`;
   }).join('');
 
+  const fill = computeFill(state.days);
+  const trips = Object.values(fill).reduce((a, b) => a + b, 0);
+  const maxFill = Math.max(1, ...Object.values(fill));
+  $('fill').innerHTML = Object.entries(fill).map(([n, count]) => {
+    const width = (count / maxFill) * 60; // on laisse de la place pour le texte au bout de la barre
+    const percent = trips ? Math.round((count / trips) * 100) : 0;
+    const label = `${formatDays(count)} jour${count > 2 ? 's' : ''} · ${percent} %`;
+    return `<div class="bar-row">
+      <span class="bar-name">${n} pers.</span>
+      <div class="bar-track">
+        ${count ? `<div class="seg fill" style="width:${width}%" data-tip="${n} personnes : ${label}"></div>` : ''}
+        <span class="bar-total">${label}</span>
+      </div>
+    </div>`;
+  }).join('');
+  const seats = Object.entries(fill).reduce((sum, [n, count]) => sum + n * count, 0);
+  $('fill-average').textContent = trips
+    ? `En moyenne : ${String(Math.round((seats / trips) * 10) / 10).replace('.', ',')} personnes par voiture.`
+    : 'Pas encore de covoiturage enregistré.';
+
   const tip = $('tooltip');
-  $('chart').querySelectorAll('.seg').forEach(el => {
+  document.querySelectorAll('#chart .seg, #fill .seg').forEach(el => {
     el.addEventListener('mousemove', e => {
       tip.textContent = el.dataset.tip;
       tip.hidden = false;
@@ -698,6 +749,58 @@ function importData(file) {
   reader.readAsText(file);
 }
 
+// Remise à zéro (par ex. en début d'année) : on efface toutes les journées
+// (nombre de covoiturages, statistiques) mais chacun repart avec des points de départ.
+function openReset() {
+  const scores = scoresFor(state.system);
+  $('reset-points').innerHTML = state.people.map(p => `
+    <div class="status-row">
+      <span>${esc(p.name)}</span>
+      <input type="text" inputmode="decimal" data-id="${p.id}" aria-label="Points de départ"
+        value="${String(Math.round(scores[p.id].score * 100) / 100).replace('.', ',')}">
+    </div>`).join('');
+  $('reset-system').textContent = SYSTEMES[state.system];
+  $('reset-error').textContent = '';
+  $('reset-panel').hidden = false;
+  $('reset-open').hidden = true;
+}
+
+function closeReset() {
+  $('reset-panel').hidden = true;
+  $('reset-open').hidden = false;
+}
+
+function confirmReset() {
+  const values = {};
+  for (const input of $('reset-points').querySelectorAll('input')) {
+    const text = input.value.trim().replace(',', '.').replace('−', '-');
+    const n = Number(text);
+    if (text === '' || !Number.isFinite(n)) {
+      return $('reset-error').textContent = 'Indique un nombre pour chaque personne (0 si besoin).';
+    }
+    values[input.dataset.id] = n;
+  }
+  if (!confirm('Effacer toutes les journées enregistrées et repartir avec ces points ?\n' +
+    'Une copie de sauvegarde va être téléchargée juste avant.')) return;
+  exportData();
+  // L'autre système de points garde les scores actuels de chacun.
+  const start = {};
+  for (const k of Object.keys(SYSTEMES)) {
+    const scores = scoresFor(k);
+    start[k] = {};
+    for (const p of state.people) start[k][p.id] = Math.round(scores[p.id].score * 100) / 100;
+  }
+  start[state.system] = values;
+  state.start = start;
+  state.days = [];
+  editingId = null;
+  save();
+  refreshPlan();
+  closeReset();
+  renderAll();
+  alert('Remise à zéro faite : les journées sont effacées, les points de départ sont enregistrés.');
+}
+
 // ---------- Démarrage ----------
 
 $('prev-week').addEventListener('click', () => changeWeek(-1));
@@ -721,6 +824,12 @@ $('delete-day').addEventListener('click', deleteDay);
 $('save-day').addEventListener('click', saveDay);
 $('cancel-edit').addEventListener('click', () => { editingId = null; renderAll(); });
 $('export').addEventListener('click', exportData);
+$('reset-open').addEventListener('click', openReset);
+$('reset-cancel').addEventListener('click', closeReset);
+$('reset-confirm').addEventListener('click', confirmReset);
+$('reset-zero').addEventListener('click', () => {
+  $('reset-points').querySelectorAll('input').forEach(input => { input.value = '0'; });
+});
 $('import').addEventListener('click', () => $('import-file').click());
 $('import-file').addEventListener('change', e => {
   if (e.target.files[0]) importData(e.target.files[0]);

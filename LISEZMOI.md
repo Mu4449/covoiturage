@@ -42,6 +42,25 @@ Un aller-retour compte pour 1 jour, un aller ou un retour seul pour ½.
 Passe la souris (ou touche, sur téléphone) une barre pour voir le détail. Le tableau en dessous donne les mêmes chiffres,
 plus le **% conducteur** : la part des covoiturages où la personne conduisait.
 
+**Remplissage de la voiture** (en dessous) : combien de covoiturages se sont faits à **2, 3 ou 4 personnes**,
+avec le pourcentage de chaque cas et le **nombre moyen de personnes par voiture**.
+Seuls les vrais covoiturages comptent (au moins 2 personnes) : un trajet seul(e) n'est pas compté.
+L'aller et le retour sont comptés séparément (½ jour chacun), car ils n'ont pas toujours le même nombre de personnes.
+Exemple : un jour à 4 à l'aller et 3 au retour = ½ jour « 4 personnes » + ½ jour « 3 personnes ».
+
+## Remise à zéro (par exemple en début d'année)
+But : repartir à zéro sur le **nombre de covoiturages** et les **statistiques**, mais **chacun garde ses points**.
+1. Dans le cadre **« Sauvegarde »**, clique sur **« Remettre à zéro… »**.
+2. Une case par personne s'affiche avec ses **points de départ** : ce sont ses points actuels.
+   Tu peux les laisser tels quels, les modifier, ou cliquer sur **« Tous les points à 0 »**.
+3. Clique sur **« Effacer les journées et repartir »**, puis confirme.
+   - Une **copie de sauvegarde** est d'abord téléchargée automatiquement (au cas où).
+   - Toutes les journées enregistrées sont effacées : « Qui a fait quoi ? » et « Remplissage » repartent de 0.
+   - Les scores repartent des points de départ, et le choix du conducteur continue normalement.
+
+Les points de départ sont gardés pour les **deux** systèmes de points : celui affiché prend les valeurs
+que tu as saisies, l'autre garde les scores qu'il avait. Tu peux donc toujours changer de système ensuite.
+
 ## Les deux systèmes de points
 En haut du planning, la liste **« Système de points »** permet de choisir. Le choix est mémorisé
 (et inclus dans les sauvegardes exportées). Tout est recalculé à partir de l'historique, on peut changer à tout moment.
@@ -103,6 +122,36 @@ se met à jour toute seule (il peut falloir la fermer et la rouvrir une fois). T
 
 **Ce qui est publié sur GitHub** : uniquement le programme. Les prénoms, les présences et l'historique
 restent dans le téléphone (et le dossier `input/` ainsi que les fichiers `.json` ne sont jamais envoyés).
+
+## Mettre une nouvelle version du programme sur GitHub
+Quand le programme a été modifié sur le PC, il faut l'envoyer sur GitHub pour que le site
+(et donc l'application du téléphone) se mette à jour.
+
+**Le plus simple : demander à Claude**
+1. Ouvre Claude Code dans le dossier `covoiturage`.
+2. Écris : **« Mets le code sur GitHub »**.
+3. Claude vérifie qu'aucun vrai prénom n'est envoyé, te montre ce qui va partir,
+   et attend ton accord avant d'envoyer.
+
+**À la main (si tu veux le faire toi-même)**
+1. Dans `sw.js`, augmente le numéro de `VERSION` (ex. `covoiturage-v3` → `covoiturage-v4`) :
+   c'est ce qui dit au téléphone « il y a du nouveau ».
+2. Ouvre un terminal (PowerShell) dans le dossier `covoiturage`.
+3. Tape ces 3 commandes, une par une :
+   ```
+   git add -A
+   git commit -m "Ce que j'ai changé, en quelques mots"
+   git push
+   ```
+   - `git add -A` : prépare tous les fichiers modifiés
+   - `git commit` : les met dans un « paquet » avec un petit message
+   - `git push` : envoie le paquet sur GitHub
+4. Attends 1 à 2 minutes : le site `https://<ton-compte>.github.io/covoiturage/` est à jour.
+   Sur le téléphone, ferme et rouvre l'application.
+
+⚠️ **Avant d'envoyer**, vérifie qu'aucun vrai prénom n'est écrit dans les fichiers
+(dans ce mode d'emploi, utilise des prénoms inventés comme « Anne »).
+Le dossier `input/` et les fichiers `.json` (tes sauvegardes) ne partent jamais : ils sont exclus automatiquement.
 
 ## Les fichiers
 - `index.html` : la page (ce que tu vois)

@@ -143,6 +143,8 @@
     }
     .seg.driver { background: var(--series-1); color: #fff; }
     .seg.pass { background: var(--series-2); color: #1f2a2e; }
+    .seg.fill { background: var(--accent); border-radius: 0 4px 4px 0; }
+    .status-row input { width: 170px; }
     .seg:last-of-type { border-radius: 0 4px 4px 0; }
     .seg:hover { filter: brightness(1.08); }
     .bar-total { font-size: 0.88rem; font-weight: 600; color: var(--ink); padding-left: 6px; white-space: nowrap; }
@@ -178,7 +180,7 @@
       .bar-row { grid-template-columns: 70px 1fr; gap: 6px; }
       .stats-table th { font-size: 0.66rem; letter-spacing: 0; }
       .stats-table td, .stats-table th { padding: 6px 3px; }
-      .status-row select { width: 60%; }
+      .status-row select, .status-row input { width: 60%; }
     }
   </style>
 </head>
@@ -243,6 +245,14 @@
         </thead>
         <tbody id="stats"></tbody>
       </table>
+
+      <h2 style="margin-top:22px">Remplissage de la voiture</h2>
+      <p class="muted small" style="margin:0 0 4px">
+        Nombre de personnes dans la voiture, seulement quand il y a covoiturage (au moins 2).
+        L'aller et le retour sont comptés séparément (½ jour chacun).
+      </p>
+      <div id="fill" class="chart"></div>
+      <p class="small" id="fill-average" style="margin:0"></p>
       <div id="tooltip" class="tooltip" hidden></div>
     </section>
 
@@ -286,6 +296,28 @@
         <button class="secondary" id="export">Exporter (fichier)</button>
         <button class="secondary" id="import">Importer un fichier</button>
         <input type="file" id="import-file" accept=".json,application/json" hidden>
+      </div>
+
+      <h2 style="margin-top:22px">Remise à zéro</h2>
+      <p class="muted small" style="margin:0">
+        Par exemple en début d'année : efface toutes les journées (covoiturages, statistiques),
+        mais chacun garde ses points.
+      </p>
+      <div class="actions">
+        <button class="danger" id="reset-open">Remettre à zéro…</button>
+      </div>
+      <div id="reset-panel" hidden>
+        <p class="small" style="margin:14px 0 8px">
+          Points de départ de chacun (système « <span id="reset-system"></span> »).
+          Ce sont les scores actuels : tu peux les modifier.
+        </p>
+        <div id="reset-points"></div>
+        <p class="error" id="reset-error"></p>
+        <div class="actions">
+          <button class="danger" id="reset-confirm">Effacer les journées et repartir</button>
+          <button class="secondary" id="reset-zero">Tous les points à 0</button>
+          <button class="secondary" id="reset-cancel">Annuler</button>
+        </div>
       </div>
     </section>
   </main>
