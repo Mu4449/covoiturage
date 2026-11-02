@@ -42,9 +42,9 @@ Un aller-retour compte pour 1 jour, un aller ou un retour seul pour ½.
 Passe la souris (ou touche, sur téléphone) une barre pour voir le détail. Le tableau en dessous donne les mêmes chiffres,
 plus le **% conducteur** : la part des covoiturages où la personne conduisait.
 
-**Remplissage de la voiture** (en dessous) : combien de covoiturages se sont faits à **2, 3 ou 4 personnes**,
-avec le pourcentage de chaque cas et le **nombre moyen de personnes par voiture**.
-Seuls les vrais covoiturages comptent (au moins 2 personnes) : un trajet seul(e) n'est pas compté.
+**Remplissage de la voiture** (en dessous) : combien de trajets se sont faits **seul(e), à 2, 3 ou 4 personnes**,
+avec le pourcentage de chaque cas (sur tous les trajets, le total fait 100 %).
+Le **nombre moyen de personnes par voiture** ne compte que les vrais covoiturages (au moins 2 personnes).
 L'aller et le retour sont comptés séparément (½ jour chacun), car ils n'ont pas toujours le même nombre de personnes.
 Exemple : un jour à 4 à l'aller et 3 au retour = ½ jour « 4 personnes » + ½ jour « 3 personnes ».
 

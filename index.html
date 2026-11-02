@@ -144,6 +144,7 @@
     .seg.driver { background: var(--series-1); color: #fff; }
     .seg.pass { background: var(--series-2); color: #1f2a2e; }
     .seg.fill { background: var(--accent); border-radius: 0 4px 4px 0; }
+    .seg.fill.alone { background: #a7b1ad; }
     .status-row input { width: 170px; }
     .seg:last-of-type { border-radius: 0 4px 4px 0; }
     .seg:hover { filter: brightness(1.08); }
@@ -249,7 +250,7 @@
 
       <h2 style="margin-top:22px">Remplissage de la voiture</h2>
       <p class="muted small" style="margin:0 0 4px">
-        Nombre de personnes dans la voiture, seulement quand il y a covoiturage (au moins 2).
+        Nombre de personnes dans la voiture, y compris quand le conducteur était seul.
         L'aller et le retour sont comptés séparément (½ jour chacun).
       </p>
       <div id="fill" class="chart"></div>

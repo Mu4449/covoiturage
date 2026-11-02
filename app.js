@@ -205,13 +205,13 @@ function scoresFor(system) {
   return stats;
 }
 
-// Remplissage de la voiture : nombre de trajets à 2, 3, 4… personnes (seul(e) ne compte pas).
+// Remplissage de la voiture : nombre de trajets à 1 (seul(e)), 2, 3, 4… personnes.
 function computeFill(days) {
   const fill = {};
-  for (let n = 2; n <= state.people.length; n++) fill[n] = 0;
+  for (let n = 1; n <= state.people.length; n++) fill[n] = 0;
   for (const day of days) {
     for (const leg of Object.values(legsOf(day.status))) {
-      if (leg.length >= 2) fill[leg.length] = (fill[leg.length] || 0) + 1;
+      if (leg.length >= 1) fill[leg.length] = (fill[leg.length] || 0) + 1;
     }
   }
   return fill;
@@ -424,17 +424,20 @@ function renderStats() {
     const width = (count / maxFill) * 60; // on laisse de la place pour le texte au bout de la barre
     const percent = trips ? Math.round((count / trips) * 100) : 0;
     const label = `${formatDays(count)} jour${count > 2 ? 's' : ''} · ${percent} %`;
+    const name = n === '1' ? 'Seul(e)' : `${n} pers.`;
     return `<div class="bar-row">
-      <span class="bar-name">${n} pers.</span>
+      <span class="bar-name">${name}</span>
       <div class="bar-track">
-        ${count ? `<div class="seg fill" style="width:${width}%" data-tip="${n} personnes : ${label}"></div>` : ''}
+        ${count ? `<div class="seg fill${n === '1' ? ' alone' : ''}" style="width:${width}%" data-tip="${name} : ${label}"></div>` : ''}
         <span class="bar-total">${label}</span>
       </div>
     </div>`;
   }).join('');
-  const seats = Object.entries(fill).reduce((sum, [n, count]) => sum + n * count, 0);
-  $('fill-average').textContent = trips
-    ? `En moyenne : ${String(Math.round((seats / trips) * 10) / 10).replace('.', ',')} personnes par voiture.`
+  // La moyenne ne compte que les vrais covoiturages (au moins 2 personnes).
+  const shared = trips - fill[1];
+  const seats = Object.entries(fill).reduce((sum, [n, count]) => n >= 2 ? sum + n * count : sum, 0);
+  $('fill-average').textContent = shared
+    ? `En moyenne, quand il y a covoiturage : ${String(Math.round((seats / shared) * 10) / 10).replace('.', ',')} personnes par voiture.`
     : 'Pas encore de covoiturage enregistré.';
 
   const tip = $('tooltip');

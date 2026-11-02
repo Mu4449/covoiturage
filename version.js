@@ -4,4 +4,4 @@
 //   A : grand changement (l'application fonctionne autrement)
 //   B : nouvelle fonction (on remet C à 0)
 //   C : petite correction
-const APP_VERSION = '1.3.0';
+const APP_VERSION = '1.4.0';
